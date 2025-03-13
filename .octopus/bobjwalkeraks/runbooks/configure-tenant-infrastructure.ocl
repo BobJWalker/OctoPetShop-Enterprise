@@ -37,11 +37,6 @@ process {
                 OctopusUseBundledTooling = "False"
             }
             worker_pool = "hosted-ubuntu"
-
-            container {
-                feed = "dockerhub"
-                image = "#{Project.ExecutionContainer.K8s}"
-            }
         }
     }
 
@@ -67,11 +62,6 @@ process {
                 OctopusUseBundledTooling = "False"
             }
             worker_pool = "hosted-ubuntu"
-
-            container {
-                feed = "dockerhub"
-                image = "#{Project.ExecutionContainer.K8s}"
-            }
         }
     }
 
@@ -122,7 +112,8 @@ process {
                     Updates the connection string secret for this particular tenanted namespace
                     EOT
             properties = {
-                Octopus.Action.GitRepository.Source = "External"
+                Octopus.Action.GitRepository.FilePathFilters = "k8s/provision/connection-secrets.yaml"
+                Octopus.Action.GitRepository.Source = "Project"
                 Octopus.Action.Kubernetes.DeploymentTimeout = "180"
                 Octopus.Action.Kubernetes.ResourceStatusCheck = "True"
                 Octopus.Action.Kubernetes.ServerSideApply.Enabled = "False"
@@ -138,14 +129,6 @@ process {
             container {
                 feed = "dockerhub"
                 image = "#{Project.ExecutionContainer.K8s}"
-            }
-
-            git_dependencies {
-                default_branch = "main"
-                file_path_filters = ["k8s/provision/connection-secrets.yaml"]
-                git_credential_id = "GitCredentials-21"
-                git_credential_type = "Library"
-                repository_uri = "https://github.com/BobJWalker/OctoPetShop-Enterprise.git"
             }
         }
     }

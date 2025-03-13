@@ -98,41 +98,6 @@ process {
         }
     }
 
-    step "create-connection-string-secret" {
-        name = "Create Connection String Secret"
-        properties = {
-            Octopus.Action.TargetRoles = "petclinic-tenanted"
-        }
-
-        action {
-            action_type = "Octopus.KubernetesDeployRawYaml"
-            notes = <<-EOT
-                    **Always Runs**
-                    
-                    Updates the connection string secret for this particular tenanted namespace
-                    EOT
-            properties = {
-                Octopus.Action.GitRepository.FilePathFilters = "k8s/provision/connection-secrets.yaml"
-                Octopus.Action.GitRepository.Source = "Project"
-                Octopus.Action.Kubernetes.DeploymentTimeout = "180"
-                Octopus.Action.Kubernetes.ResourceStatusCheck = "True"
-                Octopus.Action.Kubernetes.ServerSideApply.Enabled = "False"
-                Octopus.Action.Kubernetes.ServerSideApply.ForceConflicts = "False"
-                Octopus.Action.KubernetesContainers.CustomResourceYamlFileName = "k8s/provision/connection-secrets.yaml"
-                Octopus.Action.KubernetesContainers.Namespace = "#{Project.K8s.Namespace}"
-                Octopus.Action.Package.JsonConfigurationVariablesTargets = "**/*.{yml,yaml}"
-                Octopus.Action.Script.ScriptSource = "GitRepository"
-                OctopusUseBundledTooling = "False"
-            }
-            worker_pool = "hosted-ubuntu"
-
-            container {
-                feed = "dockerhub"
-                image = "#{Project.ExecutionContainer.K8s}"
-            }
-        }
-    }
-
     step "notify-team-of-runbook-status" {
         condition = "Always"
         name = "Notify Team of Runbook Status"

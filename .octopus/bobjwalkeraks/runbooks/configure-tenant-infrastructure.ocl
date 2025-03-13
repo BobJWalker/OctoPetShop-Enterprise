@@ -1,0 +1,18 @@
+name = "Configure Tenant Infrastructure"
+default_guided_failure_mode = "EnvironmentDefault"
+description = <<-EOT
+        **Action**: Creates the database and namespace if it doesn't exist for the environment.  
+          
+          **Affects**: The SQL Server and Kubernetes cluster this application is running on.
+        EOT
+multi_tenancy_mode = "Tenanted"
+
+connectivity_policy {
+    allow_deployments_to_no_targets = true
+}
+
+run_retention_policy {
+    quantity_to_keep = 100
+}
+
+process {}

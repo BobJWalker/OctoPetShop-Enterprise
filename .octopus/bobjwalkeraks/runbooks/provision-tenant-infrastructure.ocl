@@ -1,6 +1,7 @@
 name = "Provision Tenant Infrastructure"
 default_guided_failure_mode = "EnvironmentDefault"
 description = ""
+environment_scope = "FromProjectLifecycles"
 multi_tenancy_mode = "Tenanted"
 
 connectivity_policy {
@@ -8,7 +9,7 @@ connectivity_policy {
 }
 
 run_retention_policy {
-    quantity_to_keep = 100
+    quantity_to_keep = 10
 }
 
 process {

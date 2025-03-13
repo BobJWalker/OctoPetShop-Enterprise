@@ -156,11 +156,6 @@ process {
                 ssn_Username = "Octopus Deploy"
             }
             worker_pool = "hosted-ubuntu"
-
-            container {
-                feed = "dockerhub"
-                image = "#{Project.ExecutionContainer.K8s}"
-            }
         }
     }
 }

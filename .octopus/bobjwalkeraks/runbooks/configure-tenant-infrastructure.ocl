@@ -5,6 +5,7 @@ description = <<-EOT
           
           **Affects**: The SQL Server and Kubernetes cluster this application is running on.
         EOT
+environment_scope = "FromProjectLifecycles"
 multi_tenancy_mode = "Tenanted"
 
 connectivity_policy {

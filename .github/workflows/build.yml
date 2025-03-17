@@ -104,6 +104,21 @@ jobs:
             bobjwalker99/octopetshop-productservice
             bobjwalker99/octopetshop-shoppingcartservice
           version: "${{ steps.determine_version.outputs.FullSemVer }}" 
+      
+      - name: Create Release for GitHub
+        id: create_release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag: "${{ steps.determine_version.outputs.SemVer }}"
+          name: Release ${{ steps.determine_version.outputs.SemVer }}
+          body: |
+            Automatic Release creation by GitHub Action
+            Commit Message: ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease:  ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}  
+          
       - name: create release
         uses: OctopusDeploy/create-release-action@v3
         with:
@@ -113,17 +128,6 @@ jobs:
           git_commit: ${{ github.event.after || github.event.pull_request.head.sha }}  
           release_number: "${{ steps.determine_version.outputs.FullSemVer }}"
           package_version: "${{ steps.determine_version.outputs.FullSemVer }}"
-      - name: Create Release for GitHub
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: "${{ steps.determine_version.outputs.FullSemVer }}"
-          release_name: Release ${{ steps.determine_version.outputs.FullSemVer  }}
-          body: |
-            Commit Message: ${{ github.event.head_commit.message }}
-          draft: false
-          prerelease:  ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}                           
+                              
 
       

@@ -36,8 +36,10 @@ step "deploy-database" {
     action {
         action_type = "Octopus.ProcessTemplate"
         properties = {
+            Octopus.Action.ProcessTemplate.Reference.Commit = "b2ad45ae5eed44053f15e4c56572d6e16bc63786"
             Octopus.Action.ProcessTemplate.Reference.Slug = "deploy-database"
-            Octopus.Action.ProcessTemplate.Reference.VersioningOption = "AlwaysUseLatest"
+            Octopus.Action.ProcessTemplate.Reference.Version = "0.2.1"
+            Octopus.Action.ProcessTemplate.Reference.VersioningOption = "SpecifiedVersion"
             Octopus.Action.RunOnServer = "false"
             "Octopus.Step[Build Delta Report].Action[Build Delta Report].Container" = "{\"Image\":\"#{Project.ExecutionContainer.K8s}\",\"FeedId\":\"Feeds-1283\",\"GitUrl\":null,\"Dockerfile\":null}"
             "Octopus.Step[Build Delta Report].Action[Build Delta Report].Properties[Octopus.Action.RunOnServer]" = "true"

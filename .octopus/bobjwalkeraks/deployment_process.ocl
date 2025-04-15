@@ -1,20 +1,3 @@
-step "calculate-deployment-mode-demo" {
-    name = "Calculate Deployment Mode"
-
-    action {
-        notes = <<-EOT
-                **Always Runs**
-                
-                Step to determine if this run is a deployment, rollback, or re-deployment.
-                EOT
-        properties = {
-            Octopus.Action.Template.Id = "ActionTemplates-441"
-            Octopus.Action.Template.Version = "8"
-        }
-        worker_pool = "hosted-ubuntu"
-    }
-}
-
 step "configure-tenant" {
     name = "Configure Tenant"
 
@@ -47,99 +30,42 @@ step "configure-tenant" {
     }
 }
 
-step "generate-database-delta-report" {
-    condition = "Variable"
-    name = "Generate Database Delta Report"
-    properties = {
-        Octopus.Step.ConditionVariableExpression = "#{unless Octopus.Deployment.Error}#{Octopus.Action[Calculate Deployment Mode].Output.RunOnDeploy}#{/unless}"
-    }
+step "deploy-database" {
+    name = "Deploy Database"
 
     action {
-        action_type = "Octopus.Script"
-        notes = <<-EOT
-                **Runs on Deploy Only**
-                
-                Deploys the latest database changes to the tenanted database
-                EOT
+        action_type = "Octopus.ProcessTemplate"
         properties = {
-            Octopus.Action.GitRepository.Source = "Project"
-            Octopus.Action.Script.ScriptFileName = "scripts/deployDatabaseChanges.ps1"
-            Octopus.Action.Script.ScriptParameters = "-connectionString \"#{Project.Connection.String}\" -extractedPath \"#{Octopus.Action.Package[PetShop.Database].ExtractedPath}\" -environmentName \"#{Octopus.Environment.Name}\" -changeReportDirectory \"#{Project.ChangeReport.Path}\""
-            Octopus.Action.Script.ScriptSource = "GitRepository"
-            OctopusUseBundledTooling = "False"
-        }
-        tenant_tags = ["Branch Type/Pseudo"]
-        worker_pool = "hosted-ubuntu"
-
-        packages "PetShop.Database" {
-            acquisition_location = "Server"
-            feed = "octopus-server-built-in"
-            package_id = "PetShop.Database"
-            properties = {
-                Extract = "True"
-                Purpose = ""
-                SelectionMode = "immediate"
-            }
-        }
-    }
-}
-
-step "dba-review-database-changes" {
-    condition = "Variable"
-    name = "DBA Review Database Changes"
-    properties = {
-        Octopus.Step.ConditionVariableExpression = "#{unless Octopus.Deployment.Error}#{Octopus.Action[Calculate Deployment Mode].Output.RunOnDeploy}#{/unless}"
-    }
-
-    action {
-        action_type = "Octopus.Manual"
-        environments = ["staging"]
-        notes = <<-EOT
-                **Runs on Deployments to Staging Only**
-                
-                Will pause the deployment so the DBA can review the SQL scripts before running them on Staging.
-                EOT
-        properties = {
-            Octopus.Action.Manual.BlockConcurrentDeployments = "False"
-            Octopus.Action.Manual.Instructions = "DBA, please review the proposed database scripts.  You can find the report in the artifacts menu to the right."
-            Octopus.Action.Manual.ResponsibleTeamIds = "dba"
+            Octopus.Action.ProcessTemplate.Reference.Slug = "deploy-database"
+            Octopus.Action.ProcessTemplate.Reference.VersioningOption = "AlwaysUseLatest"
             Octopus.Action.RunOnServer = "false"
+            "Octopus.Step[Build Delta Report].Action[Build Delta Report].Container" = "{\"Image\":\"#{Project.ExecutionContainer.K8s}\",\"FeedId\":\"Feeds-1283\",\"GitUrl\":null,\"Dockerfile\":null}"
+            "Octopus.Step[Build Delta Report].Action[Build Delta Report].Properties[Octopus.Action.RunOnServer]" = "true"
+            "Octopus.Step[Build Delta Report].Action[Build Delta Report].WorkerPoolId" = "WorkerPools-423"
+            "Octopus.Step[Calculate Deployment Mode].Action[Calculate Deployment Mode].Container" = "{\"Image\":\"#{Project.ExecutionContainer.K8s}\",\"FeedId\":\"Feeds-1283\",\"GitUrl\":null,\"Dockerfile\":null}"
+            "Octopus.Step[Calculate Deployment Mode].Action[Calculate Deployment Mode].Properties[Octopus.Action.RunOnServer]" = "true"
+            "Octopus.Step[Calculate Deployment Mode].Action[Calculate Deployment Mode].WorkerPoolId" = "WorkerPools-423"
+            "Octopus.Step[DBAs Approve Delta Script].Action[DBAs Approve Delta Script].Environments" = "Environments-81"
+            "Octopus.Step[DBAs Approve Delta Script].Action[DBAs Approve Delta Script].TenantTags" = "Branch Type/Pseudo"
+            "Octopus.Step[Deploy Database Changes].Action[Deploy Database Changes].Container" = "{\"Image\":\"#{Project.ExecutionContainer.K8s}\",\"FeedId\":\"Feeds-1283\",\"GitUrl\":null,\"Dockerfile\":null}"
+            "Octopus.Step[Deploy Database Changes].Action[Deploy Database Changes].Properties[Octopus.Action.RunOnServer]" = "true"
+            "Octopus.Step[Deploy Database Changes].Action[Deploy Database Changes].WorkerPoolId" = "WorkerPools-423"
+            "Octopus.Step[Notify DBAs].Action[Notify DBAs].Environments" = "Environments-81"
+            "Octopus.Step[Notify DBAs].Action[Notify DBAs].TenantTags" = "Branch Type/Pseudo"
+            Template.Database.ConnectionString = "#{Project.Connection.String}"
+            Template.Database.Package = "{\"PackageId\":\"PetClinic.Database\",\"FeedId\":\"octopus-server-built-in\"}"
+            Template.DbUp.Executable = "OctopusSamples.OctoPetShop.Database"
+            Template.Notification.Email = "bob.walker@octopus.com"
         }
-        tenant_tags = ["Branch Type/Pseudo"]
-    }
-}
+        worker_pool_variable = ""
 
-step "deploy-database-changes" {
-    condition = "Variable"
-    name = "Deploy Database Changes"
-    properties = {
-        Octopus.Step.ConditionVariableExpression = "#{unless Octopus.Deployment.Error}#{Octopus.Action[Calculate Deployment Mode].Output.RunOnDeploy}#{/unless}"
-    }
-
-    action {
-        action_type = "Octopus.Script"
-        notes = <<-EOT
-                **Runs on Deploy Only**
-                
-                Deploys the latest database changes to the tenanted database
-                EOT
-        properties = {
-            Octopus.Action.GitRepository.Source = "Project"
-            Octopus.Action.Script.ScriptFileName = "scripts/deployDatabaseChanges.ps1"
-            Octopus.Action.Script.ScriptParameters = "-connectionString \"#{Project.Connection.String}\" -extractedPath \"#{Octopus.Action.Package[PetShop.Database].ExtractedPath}\" -environmentName \"#{Octopus.Environment.Name}\""
-            Octopus.Action.Script.ScriptSource = "GitRepository"
-            OctopusUseBundledTooling = "False"
-        }
-        worker_pool = "hosted-ubuntu"
-
-        packages "PetShop.Database" {
-            acquisition_location = "Server"
+        packages "Template.Database.Package" {
+            acquisition_location = ""
             feed = "octopus-server-built-in"
-            package_id = "PetShop.Database"
+            package_id = "PetClinic.Database"
             properties = {
-                Extract = "True"
-                Purpose = ""
-                SelectionMode = "immediate"
+                PackageParameterName = "Template.Database.Package"
+                SelectionMode = "deferred"
             }
         }
     }

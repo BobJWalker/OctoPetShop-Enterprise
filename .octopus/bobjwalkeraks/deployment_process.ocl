@@ -30,6 +30,41 @@ step "configure-tenant" {
     }
 }
 
+process_template "deploy-databases" {
+    name = "Deploy Databases"
+    process_template_slug = "deploy-database"
+    version_mask = "1.0.X"
+
+    package_parameter "Template.Database.Package" {
+        feed = "octopus-server-built-in"
+        package_id = "PetShop.Database"
+    }
+
+    parameter "Template.DbUp.Executable" {
+        value = "OctopusSamples.OctoPetShop.Database"
+    }
+
+    parameter "Template.Database.ConnectionString" {
+        value = "#{Project.Connection.String}"
+    }
+
+    parameter "Template.Database.ChangeReportDirectory" {
+        value = "#{Project.ChangeReport.Path}"
+    }
+
+    parameter "Template.WorkerPool" {
+        value = "#{Standards.Worker.Pool}"
+    }
+
+    parameter "Template.Approval.Environments" {
+        value = "Environments-81"
+    }
+
+    parameter "Template.Approval.Teams" {
+        value = "Teams-321"
+    }
+}
+
 step "deploy-product-service" {
     name = "Deploy Product Service"
     properties = {

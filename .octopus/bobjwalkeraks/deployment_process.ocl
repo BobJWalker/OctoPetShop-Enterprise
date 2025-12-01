@@ -51,8 +51,8 @@ step "configure-tenant" {
     }
 }
 
-process_template "deploy-tenanted-application" {
-    name = "Deploy Tenanted Application"
+process_template "deploy-k8s-manifest" {
+    name = "Deploy K8s Manifest"
     process_template_slug = "deploy-process-deploy-to-kubernetes-via-manifest"
     version_mask = "1.X"
 

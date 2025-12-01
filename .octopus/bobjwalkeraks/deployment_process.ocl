@@ -9,7 +9,7 @@ step "configure-tenant" {
                 EOT
         properties = {
             Octopus.Action.Template.Id = "ActionTemplates-141"
-            Octopus.Action.Template.Version = "17"
+            Octopus.Action.Template.Version = "18"
             Run.Runbook.Api.Key = "#{IaC.Runbook.API.Key}"
             Run.Runbook.AutoApproveManualInterventions = "No"
             Run.Runbook.Base.Url = "#{Octopus.Web.ServerUri}"

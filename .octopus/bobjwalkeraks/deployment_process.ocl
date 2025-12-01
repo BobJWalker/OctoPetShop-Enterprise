@@ -47,7 +47,7 @@ step "configure-tenant" {
             Run.Runbook.UsePublishedSnapShot = "True"
             Run.Runbook.Waitforfinish = "True"
         }
-        worker_pool = "hosted-ubuntu"
+        worker_pool_variable = "Standards.Worker.Pool"
     }
 }
 
@@ -104,11 +104,6 @@ step "notify-team-of-deployment-status" {
             ssn_Title = "#{Notification.DeploymentStatus.Subject.Text}"
             ssn_Username = "Octopus Deploy"
         }
-        worker_pool = "hosted-ubuntu"
-
-        container {
-            feed = "dockerhub"
-            image = "#{Project.ExecutionContainer.K8s}"
-        }
+        worker_pool_variable = "Standards.Worker.Pool"
     }
 }

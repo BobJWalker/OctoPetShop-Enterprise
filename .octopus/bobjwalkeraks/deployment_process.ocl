@@ -30,209 +30,34 @@ step "configure-tenant" {
     }
 }
 
-process_template "deploy-databases" {
-    name = "Deploy Databases"
-    process_template_slug = "deploy-database"
-    version_mask = "1.0.X"
+process_template "deploy-tenanted-application" {
+    name = "Deploy Tenanted Application"
+    process_template_slug = "deploy-process-deploy-to-kubernetes-via-manifest"
+    version_mask = "1.X"
 
-    package_parameter "Template.Database.Package" {
-        feed = "octopus-server-built-in"
-        package_id = "PetShop.Database"
+    package_parameter "K8sTemplate.Container" {
+        feed = "dockerhub"
+        package_id = "bobjwalker99/spear"
     }
 
-    parameter "Template.DbUp.Executable" {
-        value = "OctopusSamples.OctoPetShop.Database"
+    parameter "K8sTemplate.Target.Tag" {
+        value = "petclinic-tenanted"
     }
 
-    parameter "Template.Database.ConnectionString" {
-        value = "#{Project.Connection.String}"
+    parameter "K8sTemplate.Git.Repo" {
+        value = "https://github.com/BobJWalker/Spear.git"
     }
 
-    parameter "Template.Database.ChangeReportDirectory" {
-        value = "#{Project.ChangeReport.Path}"
+    parameter "K8sTemplate.Namespace" {
+        value = "#{Project.K8s.Namespace}"
     }
 
-    parameter "Template.WorkerPool" {
+    parameter "K8sTemplate.Verification.Script.Path" {
+        value = "scripts/VerifySuccessfulDeployment.ps1"
+    }
+
+    parameter "K8sTemplate.Worker.Pool" {
         value = "#{Standards.Worker.Pool}"
-    }
-
-    parameter "Template.Approval.Environments" {
-        value = "Environments-81"
-    }
-
-    parameter "Template.Approval.Teams" {
-        value = "Teams-321"
-    }
-}
-
-step "deploy-product-service" {
-    name = "Deploy Product Service"
-    properties = {
-        Octopus.Action.TargetRoles = "petclinic-tenanted"
-    }
-
-    action {
-        action_type = "Octopus.KubernetesDeployRawYaml"
-        notes = <<-EOT
-                **Always Runs**
-                
-                Deploys the specified version of the product service and Cluster IP to the tenanted namespace.
-                EOT
-        properties = {
-            Octopus.Action.GitRepository.FilePathFilters = "k8s/deployments/product-service-deployment.yaml"
-            Octopus.Action.GitRepository.Source = "Project"
-            Octopus.Action.Kubernetes.DeploymentTimeout = "180"
-            Octopus.Action.Kubernetes.ResourceStatusCheck = "True"
-            Octopus.Action.Kubernetes.ServerSideApply.Enabled = "False"
-            Octopus.Action.Kubernetes.ServerSideApply.ForceConflicts = "False"
-            Octopus.Action.KubernetesContainers.CustomResourceYamlFileName = "k8s/deployments/product-service-deployment.yaml"
-            Octopus.Action.KubernetesContainers.Namespace = "#{Project.K8s.Namespace}"
-            Octopus.Action.Package.JsonConfigurationVariablesTargets = "**/*.{yml,yaml}"
-            Octopus.Action.Script.ScriptSource = "GitRepository"
-            OctopusUseBundledTooling = "False"
-        }
-        worker_pool = "hosted-ubuntu"
-
-        container {
-            feed = "dockerhub"
-            image = "#{Project.ExecutionContainer.K8s}"
-        }
-
-        packages "octopetshop-productservice" {
-            acquisition_location = "NotAcquired"
-            feed = "dockerhub"
-            package_id = "bobjwalker99/octopetshop-productservice"
-            properties = {
-                Extract = "False"
-                Purpose = ""
-                SelectionMode = "immediate"
-            }
-        }
-    }
-}
-
-step "deploy-shopping-cart-service" {
-    name = "Deploy Shopping Cart Service"
-    properties = {
-        Octopus.Action.TargetRoles = "petclinic-tenanted"
-    }
-
-    action {
-        action_type = "Octopus.KubernetesDeployRawYaml"
-        notes = <<-EOT
-                **Always Runs**
-                
-                Deploys the specified version of the shopping cart service and Cluster IP to the tenanted namespace.
-                EOT
-        properties = {
-            Octopus.Action.GitRepository.FilePathFilters = "k8s/deployments/shopping-cart-service-deployment.yaml"
-            Octopus.Action.GitRepository.Source = "Project"
-            Octopus.Action.Kubernetes.DeploymentTimeout = "180"
-            Octopus.Action.Kubernetes.ResourceStatusCheck = "True"
-            Octopus.Action.Kubernetes.ServerSideApply.Enabled = "False"
-            Octopus.Action.Kubernetes.ServerSideApply.ForceConflicts = "False"
-            Octopus.Action.KubernetesContainers.CustomResourceYamlFileName = "k8s/deployments/shopping-cart-service-deployment.yaml"
-            Octopus.Action.KubernetesContainers.Namespace = "#{Project.K8s.Namespace}"
-            Octopus.Action.Package.JsonConfigurationVariablesTargets = "**/*.{yml,yaml}"
-            Octopus.Action.Script.ScriptSource = "GitRepository"
-            OctopusUseBundledTooling = "False"
-        }
-        worker_pool = "hosted-ubuntu"
-
-        container {
-            feed = "dockerhub"
-            image = "#{Project.ExecutionContainer.K8s}"
-        }
-
-        packages "octopetshop-shoppingcartservice" {
-            acquisition_location = "NotAcquired"
-            feed = "dockerhub"
-            package_id = "bobjwalker99/octopetshop-shoppingcartservice"
-            properties = {
-                Extract = "False"
-                Purpose = ""
-                SelectionMode = "immediate"
-            }
-        }
-    }
-}
-
-step "deploy-web-ui" {
-    name = "Deploy Web UI"
-    properties = {
-        Octopus.Action.TargetRoles = "petclinic-tenanted"
-    }
-
-    action {
-        action_type = "Octopus.KubernetesDeployRawYaml"
-        notes = <<-EOT
-                **Always Runs**
-                
-                Deploys the specified version of the Web UI, Cluster IP, and ingress configuration to the tenanted namespace.
-                EOT
-        properties = {
-            Octopus.Action.GitRepository.FilePathFilters = "k8s/deployments/frontend-deployment.yaml"
-            Octopus.Action.GitRepository.Source = "Project"
-            Octopus.Action.Kubernetes.DeploymentTimeout = "180"
-            Octopus.Action.Kubernetes.ResourceStatusCheck = "True"
-            Octopus.Action.Kubernetes.ServerSideApply.Enabled = "False"
-            Octopus.Action.Kubernetes.ServerSideApply.ForceConflicts = "False"
-            Octopus.Action.KubernetesContainers.CustomResourceYamlFileName = "k8s/deployments/frontend-deployment.yaml"
-            Octopus.Action.KubernetesContainers.Namespace = "#{Project.K8s.Namespace}"
-            Octopus.Action.Package.JsonConfigurationVariablesTargets = "**/*.{yml,yaml}"
-            Octopus.Action.Script.ScriptSource = "GitRepository"
-            OctopusUseBundledTooling = "False"
-        }
-        worker_pool = "hosted-ubuntu"
-
-        container {
-            feed = "dockerhub"
-            image = "#{Project.ExecutionContainer.K8s}"
-        }
-
-        packages "octopetshop-web" {
-            acquisition_location = "NotAcquired"
-            feed = "dockerhub"
-            package_id = "bobjwalker99/octopetshop-web"
-            properties = {
-                Extract = "False"
-                Purpose = ""
-                SelectionMode = "immediate"
-            }
-        }
-    }
-}
-
-step "destroy-tenant-test-infrastructure" {
-    name = "Destroy Tenant Test Infrastructure"
-
-    action {
-        notes = <<-EOT
-                **Always Runs**
-                
-                Runs a runbook to remove any testing infrastructure created for the tenant.
-                EOT
-        properties = {
-            Octopus.Action.Template.Id = "ActionTemplates-141"
-            Octopus.Action.Template.Version = "17"
-            Run.Runbook.Api.Key = "#{IaC.Runbook.API.Key}"
-            Run.Runbook.AutoApproveManualInterventions = "No"
-            Run.Runbook.Base.Url = "#{Octopus.Web.ServerUri}"
-            Run.Runbook.CaCBranchName = "#{Octopus.Release.Git.BranchName}"
-            Run.Runbook.CancelInSeconds = "1800"
-            Run.Runbook.CustomNotes.Toggle = "False"
-            Run.Runbook.DateTime = "N/A"
-            Run.Runbook.Environment.Name = "#{Octopus.Environment.Name}"
-            Run.Runbook.Machines = "N/A"
-            Run.Runbook.ManualIntervention.EnvironmentToUse = "#{Octopus.Environment.Name}"
-            Run.Runbook.Name = "Destroy Tenant"
-            Run.Runbook.Project.Name = "#{Octopus.Project.Name}"
-            Run.Runbook.Space.Name = "#{Octopus.Space.Name}"
-            Run.Runbook.Tenant.Name = "#{Octopus.Deployment.Tenant.Name}"
-            Run.Runbook.UsePublishedSnapShot = "True"
-            Run.Runbook.Waitforfinish = "True"
-        }
-        worker_pool = "hosted-ubuntu"
     }
 }
 

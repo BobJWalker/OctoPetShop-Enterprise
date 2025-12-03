@@ -1,15 +1,7 @@
-variable "Project.K8s.Namespace" {
-    value "#{Tenant.Common.Abbreviation | ToLower }-#{Octopus.Environment.Name | ToLower }" {}
-}
-
-variable "Project.ExecutionContainer.K8s" {
-    value "octopuslabs/k8s-workertools:1.29" {}
+variable "spec:template:spec:containers:0:image" {
+    value "bobjwalker99/spear:#{Octopus.Action[Deploy K8s Manifest-Deploy Container].Package[K8sTemplate.Container].PackageVersion}" {}
 }
 
 variable "spec:rules:0:host" {
-    value "#{Tenant.Common.Abbreviation | ToLower }#{Octopus.Environment.Name | ToLower }.local" {}
-}
-
-variable "spec:template:spec:containers:0:image" {
-    value "bobjwalker99/spear:#{Octopus.Action[Deploy K8s Manifest-Deploy Container].Package[K8sTemplate.Container].PackageVersion}" {}
+    value "#{Standards.K8s.HostName}" {}
 }

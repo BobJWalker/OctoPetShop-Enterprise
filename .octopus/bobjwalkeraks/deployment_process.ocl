@@ -69,16 +69,16 @@ process_template "deploy-k8s-manifest" {
         value = "https://github.com/BobJWalker/Spear.git"
     }
 
-    parameter "K8sTemplate.Namespace" {
-        value = "#{Project.K8s.Namespace}"
-    }
-
     parameter "K8sTemplate.Verification.Script.Path" {
         value = "scripts/VerifySuccessfulDeployment.ps1"
     }
 
     parameter "K8sTemplate.Worker.Pool" {
         value = "#{Standards.Worker.Pool}"
+    }
+
+    parameter "K8sTemplate.Namespace" {
+        value = "#{Standards.K8s.Namespace}"
     }
 }
 

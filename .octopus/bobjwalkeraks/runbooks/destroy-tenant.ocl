@@ -22,12 +22,12 @@ process {
         process_template_slug = "runbook-destroy-container-infrastructure"
         version_mask = "1.X"
 
-        parameter "Template.Kubernetes.Namespace.Name" {
-            value = "#{Project.K8s.Namespace}"
-        }
-
         parameter "Template.Kubernetes.TargetTags" {
             value = "petclinic-tenanted"
+        }
+
+        parameter "Template.Kubernetes.Namespace.Name" {
+            value = "#{Standards.K8s.Namespace}"
         }
     }
 

@@ -23,7 +23,7 @@ process {
         version_mask = "1.X"
 
         parameter "Template.Kubernetes.Namespace.Name" {
-            value = "#{Project.K8s.Namespace}"
+            value = "#{Standards.K8s.Namespace}"
         }
 
         parameter "Template.Kubernetes.TargetTags" {

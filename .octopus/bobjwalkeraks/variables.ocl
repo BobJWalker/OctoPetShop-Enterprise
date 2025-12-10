@@ -2,6 +2,14 @@ variable "spec:template:spec:containers:0:image" {
     value "bobjwalker99/spear:#{Octopus.Action[Deploy K8s Manifest-Deploy Container].Package[K8sTemplate.Container].PackageVersion}" {}
 }
 
-variable "spec:rules:0:host" {
+variable "stringData:openFeatureClientId" {
+    value "#{Octopus.FeatureToggles.ClientIdentifier}" {}
+}
+
+variable "metadata:namespace" {
+    value "#{Standards.K8s.Namespace}" {}
+}
+
+variable "spec:hostnames:0" {
     value "#{Standards.K8s.HostName}" {}
 }
